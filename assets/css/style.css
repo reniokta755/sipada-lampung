@@ -1,0 +1,174 @@
+/* assets/css/style.css - Styling Khas Portal Aset Daerah Pemprov Lampung */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --primary-navy: #0f172a;
+  --secondary-navy: #1e293b;
+  --lampung-gold: #f59e0b;
+  --lampung-gold-dark: #b45309;
+  --lampung-red: #dc2626;
+  --lampung-emerald: #059669;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Pola Motif Tapis Tradisional Lampung yang Halus */
+.bg-lampung-pattern {
+  background-color: #0f172a;
+  background-image: radial-gradient(#d97706 0.75px, transparent 0.75px), radial-gradient(#d97706 0.75px, #0f172a 0.75px);
+  background-size: 30px 30px;
+  background-position: 0 0, 15px 15px;
+}
+
+/* Siger Border Accent */
+.border-siger {
+  border-image: linear-gradient(to right, #f59e0b, #ef4444, #f59e0b) 1;
+}
+
+/* Glassmorphism */
+.glass-header {
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+/* Custom Leaflet Map styling */
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  line-height: 1.5;
+}
+
+/* Custom Marker Pin */
+.custom-pin {
+  width: 34px;
+  height: 34px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+  border: 2px solid #ffffff;
+}
+
+.custom-pin i {
+  transform: rotate(45deg);
+  color: white;
+  font-size: 14px;
+}
+
+/* Animasi pulse untuk titik sengketa / penting */
+.pin-pulse {
+  animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* Tab Active State */
+.nav-tab-btn.active {
+  border-color: #f59e0b;
+  color: #f59e0b;
+  background-color: rgba(245, 158, 11, 0.08);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* =========================================================================
+   STIKER LABEL INVENTARIS & CETAK BERITA ACARA RESMI (PRINT STYLES)
+   ========================================================================= */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  /* Area yang dicetak */
+  #printableArea, #printableArea * {
+    visibility: visible;
+  }
+  
+  #printableArea {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 20px;
+    background: white;
+    color: black;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+  
+  @page {
+    size: auto;
+    margin: 15mm;
+  }
+}
+
+/* Desain Label Inventaris Barang Daerah (Stiker QR Aset BPKAD) */
+.asset-label-sticker {
+  width: 90mm;
+  height: 48mm;
+  border: 2px solid #0f172a;
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+  page-break-inside: avoid;
+}
+
+.asset-label-sticker .label-header {
+  border-bottom: 1.5px solid #0f172a;
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+

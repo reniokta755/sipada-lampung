@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" width="100%" height="100%">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCD34D" />
+      <stop offset="50%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#D97706" />
+    </linearGradient>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#047857" />
+      <stop offset="100%" stop-color="#064E3B" />
+    </linearGradient>
+    <linearGradient id="redGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#DC2626" />
+      <stop offset="100%" stop-color="#991B1B" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Perisai Segilima Luar (Emas) -->
+  <polygon points="100,10 185,45 165,190 100,225 35,190 15,45" fill="url(#goldGrad)" stroke="#B45309" stroke-width="3" filter="url(#shadow)"/>
+  
+  <!-- Perisai Dalam (Hijau Zamrud) -->
+  <polygon points="100,20 173,50 155,180 100,212 45,180 27,50" fill="url(#shieldGrad)" stroke="#FDE68A" stroke-width="2"/>
+
+  <!-- Pita Merah Atas Siger -->
+  <path d="M 50,55 Q 100,45 150,55 L 145,68 Q 100,58 55,68 Z" fill="url(#redGrad)"/>
+
+  <!-- Mahkota Siger Lampung (9 Lekukan Emas Khas Pepadun & Saibatin) -->
+  <g fill="url(#goldGrad)" stroke="#92400E" stroke-width="1.5">
+    <!-- Puncak Tengah Siger -->
+    <path d="M 100,50 L 108,85 L 92,85 Z" />
+    <circle cx="100" cy="48" r="4" fill="#FEF3C7" stroke="#B45309"/>
+    
+    <!-- Tingkat 2 Kiri & Kanan -->
+    <path d="M 88,58 L 96,88 L 82,88 Z" />
+    <path d="M 112,58 L 118,88 L 104,88 Z" />
+    <circle cx="87" cy="56" r="3.5" fill="#FEF3C7" stroke="#B45309"/>
+    <circle cx="113" cy="56" r="3.5" fill="#FEF3C7" stroke="#B45309"/>
+
+    <!-- Tingkat 3 Kiri & Kanan -->
+    <path d="M 74,68 L 84,92 L 68,92 Z" />
+    <path d="M 126,68 L 132,92 L 116,92 Z" />
+    <circle cx="73" cy="66" r="3" fill="#FEF3C7" stroke="#B45309"/>
+    <circle cx="127" cy="66" r="3" fill="#FEF3C7" stroke="#B45309"/>
+
+    <!-- Sayap Siger Kiri & Kanan Melebar Khas Lampung -->
+    <path d="M 60,82 Q 45,72 40,88 Q 50,102 75,98 Z" />
+    <path d="M 140,82 Q 155,72 160,88 Q 150,102 125,98 Z" />
+    <circle cx="39" cy="85" r="3" fill="#FEF3C7" stroke="#B45309"/>
+    <circle cx="161" cy="85" r="3" fill="#FEF3C7" stroke="#B45309"/>
+
+    <!-- Dasar Mahkota Siger -->
+    <path d="M 52,98 Q 100,90 148,98 L 144,106 Q 100,98 56,106 Z" fill="#F59E0B" stroke="#78350F"/>
+  </g>
+
+  <!-- Untaian Padi (Kiri) dan Buah Lada (Kanan) -->
+  <g stroke="#FDE68A" stroke-width="1.2" fill="none">
+    <!-- Padi Kiri -->
+    <path d="M 50,165 C 45,130 52,110 65,105" />
+    <circle cx="50" cy="155" r="3" fill="#FCD34D"/>
+    <circle cx="48" cy="143" r="3" fill="#FCD34D"/>
+    <circle cx="49" cy="131" r="3" fill="#FCD34D"/>
+    <circle cx="53" cy="120" r="3" fill="#FCD34D"/>
+    <circle cx="60" cy="111" r="3" fill="#FCD34D"/>
+
+    <!-- Lada Kanan -->
+    <path d="M 150,165 C 155,130 148,110 135,105" stroke="#FDE68A"/>
+    <circle cx="150" cy="155" r="3.5" fill="#93C5FD" stroke="#1E40AF"/>
+    <circle cx="152" cy="143" r="3.5" fill="#93C5FD" stroke="#1E40AF"/>
+    <circle cx="151" cy="131" r="3.5" fill="#93C5FD" stroke="#1E40AF"/>
+    <circle cx="147" cy="120" r="3.5" fill="#93C5FD" stroke="#1E40AF"/>
+    <circle cx="140" cy="111" r="3.5" fill="#93C5FD" stroke="#1E40AF"/>
+  </g>
+
+  <!-- Golok Adat / Payan Tradisional Lampung Silang Tengah -->
+  <g stroke="#E5E7EB" stroke-width="2.5" stroke-linecap="round">
+    <line x1="85" y1="165" x2="115" y2="120" />
+    <line x1="115" y1="165" x2="85" y2="120" />
+    <circle cx="100" cy="142" r="6" fill="#F59E0B" stroke="#78350F" stroke-width="1.5"/>
+  </g>
+
+  <!-- Pita Putih / Semboyan SANG BUMI RUWA JURAI -->
+  <g>
+    <path d="M 40,185 Q 100,175 160,185 L 155,198 Q 100,188 45,198 Z" fill="#FFFFFF" stroke="#9CA3AF" stroke-width="1"/>
+    <text x="100" y="194" font-family="'Segoe UI', Roboto, sans-serif" font-size="7.5" font-weight="900" fill="#1E293B" text-anchor="middle" letter-spacing="0.8">
+      SANG BUMI RUWA JURAI
+    </text>
+  </g>
+
+  <!-- Tulisan LAMPUNG -->
+  <text x="100" y="32" font-family="'Segoe UI', Roboto, sans-serif" font-size="9" font-weight="900" fill="#FEF3C7" text-anchor="middle" letter-spacing="2">
+    LAMPUNG
+  </text>
+</svg>
+

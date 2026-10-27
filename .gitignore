@@ -1,0 +1,12 @@
+# OS & Editors
+.DS_Store
+Thumbs.db
+*.swp
+*.bak
+.vscode/
+.idea/
+
+# SQLite WAL and temp logs
+*.sqlite-wal
+*.sqlite-shm
+data/*.sqlite
