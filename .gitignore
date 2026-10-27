@@ -10,3 +10,4 @@ Thumbs.db
 *.sqlite-wal
 *.sqlite-shm
 data/*.sqlite
+

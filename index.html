@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard & Sistem Pencatatan Aset Daerah - Pemprov Lampung</title>
+    <title>SIPADA LAMPUNG - Dashboard & Sistem Pencatatan Aset Pemprov Lampung</title>
     
     <!-- Meta SEO & Favicon -->
-    <meta name="description" content="SIPADA LAMPUNG - Sistem Informasi & Dashboard Pengelolaan Barang Milik Daerah (BMD) Pemerintah Provinsi Lampung">
+    <meta name="description" content="SIPADA LAMPUNG - Sistem Informasi & Transparansi Pengelolaan Barang Milik Daerah (BMD) Pemerintah Provinsi Lampung">
     <link rel="icon" type="image/svg+xml" href="assets/img/logo-lampung.svg">
 
     <!-- Tailwind CSS CDN -->
@@ -38,6 +38,12 @@
     
     <!-- Custom Stylesheet -->
     <link rel="stylesheet" href="assets/css/style.css">
+
+    <!-- html5-qrcode CDN (Camera QR Scanner) -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <!-- html2pdf CDN (PDF Generator) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
 
@@ -66,8 +72,13 @@
                 </div>
 
                 <!-- Right Actions & Mode Switcher -->
-                <div class="flex items-center gap-2.5">
+                <div class="flex items-center gap-2 sm:gap-2.5">
                     
+                    <!-- Tombol Scan QR Kamera -->
+                    <button onclick="App.openQRScannerModal()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-sm" title="Pindai Stiker Label QR Fisik Aset Menggunakan Kamera">
+                        <i class="fa-solid fa-qrcode text-sm"></i> <span class="hidden md:inline">Scan Label</span>
+                    </button>
+
                     <!-- Mode Badge -->
                     <div id="modeBadge" class="text-xs font-semibold px-3 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700 hidden sm:flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-amber-400"></span> Mode Transparansi Publik
@@ -87,7 +98,7 @@
 
                     <!-- Tombol Reset Database ke Awal -->
                     <button onclick="App.resetDatabaseToOfficialSeed()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-semibold px-2.5 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all" title="Reset ke Data Awal Resmi Pemprov Lampung (34 Aset)">
-                        <i class="fa-solid fa-arrows-rotate text-amber-400"></i> <span class="hidden xl:inline">Reset Data</span>
+                        <i class="fa-solid fa-arrows-rotate text-amber-400"></i> <span class="hidden xl:inline">Reset</span>
                     </button>
 
                     <!-- Tombol Export Excel -->
@@ -155,7 +166,7 @@
                     <div class="mt-5 flex flex-wrap gap-4 text-xs text-slate-300">
                         <span class="flex items-center gap-1.5"><i class="fa-solid fa-landmark text-amber-400"></i> Pengelola: BPKAD Prov. Lampung</span>
                         <span class="flex items-center gap-1.5"><i class="fa-solid fa-map-marked-alt text-amber-400"></i> Cakupan: 15 Kabupaten/Kota</span>
-                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-cloud-arrow-up text-amber-400"></i> Siap Pakai di Vercel & Multi-Platform</span>
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-bolt text-amber-400"></i> Cloud Edge Ready (Vercel)</span>
                     </div>
                 </div>
             </div>
@@ -413,10 +424,10 @@
                 </div>
 
                 <!-- Input & Select Controls -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
                     
                     <!-- Search Input -->
-                    <div class="relative sm:col-span-2 lg:col-span-1">
+                    <div class="relative sm:col-span-2 lg:col-span-2">
                         <input type="text" id="globalSearchInput" placeholder="Cari nama, kode, plat BE..." class="w-full text-xs pl-8 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
                         <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
                     </div>
@@ -451,12 +462,11 @@
                         <option value="Kabupaten Pesisir Barat">Kab. Pesisir Barat</option>
                     </select>
 
-                    <!-- Kondisi Fisik -->
-                    <select id="filterCondition" class="text-xs px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
-                        <option value="">Semua Kondisi</option>
-                        <option value="Baik">Baik (Layak)</option>
-                        <option value="Rusak Ringan">Rusak Ringan</option>
-                        <option value="Rusak Berat">Rusak Berat</option>
+                    <!-- Status Sensus Fisik -->
+                    <select id="filterSensus" class="text-xs px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        <option value="">Semua Status Sensus</option>
+                        <option value="Terverifikasi">Telah Terverifikasi</option>
+                        <option value="Belum Sensus">Belum Sensus</option>
                     </select>
 
                 </div>
@@ -587,9 +597,14 @@
                     <h3 class="font-bold text-slate-900 text-sm">Berita Acara Rekapitulasi Barang Milik Daerah</h3>
                     <p class="text-xs text-slate-500">Format resmi kedinasan sesuai standar Permendagri No. 19 Tahun 2016 siap cetak dan tandatangan.</p>
                 </div>
-                <button onclick="App.triggerPrintReport()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-md">
-                    <i class="fa-solid fa-print"></i> Cetak Berita Acara (PDF/Print)
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="App.downloadPDFReport()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-sm transition-all">
+                        <i class="fa-solid fa-file-pdf text-rose-400"></i> Unduh PDF
+                    </button>
+                    <button onclick="App.triggerPrintReport()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-md transition-all">
+                        <i class="fa-solid fa-print"></i> Cetak Dokumen
+                    </button>
+                </div>
             </div>
 
             <!-- DOKUMEN CETAK RESMI BERITA ACARA -->
@@ -691,6 +706,46 @@
     </footer>
 
     <!-- =========================================================================
+         MODAL KAMERA QR CODE SCANNER (SENSUS LAPANGAN)
+         ========================================================================= -->
+    <div id="qrScannerModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full p-6 text-center">
+            
+            <div class="flex items-center justify-between mb-3 border-b pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center"><i class="fa-solid fa-qrcode"></i></span>
+                    <h4 class="font-bold text-slate-900 text-sm">Scan Stiker Label Fisik Aset</h4>
+                </div>
+                <button onclick="App.closeQRScannerModal()" class="w-7 h-7 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            </div>
+
+            <!-- Area Kamera Live Stream -->
+            <div class="relative rounded-2xl overflow-hidden border-2 border-slate-300 bg-black h-64 flex items-center justify-center mb-3">
+                <div id="qrReaderCamera" class="w-full h-full"></div>
+            </div>
+
+            <!-- Status Pembacaan QR -->
+            <div id="qrScanStatus" class="text-xs text-slate-500 p-2.5 bg-slate-50 rounded-xl border border-slate-200 mb-3">
+                Arahkan kamera ke stiker QR Code aset atau masukkan kode manual.
+            </div>
+
+            <!-- Fallback Input Kode Manual -->
+            <div class="pt-2 border-t border-slate-100 text-left">
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Atau Masukkan Kode / No. Register Barang:</label>
+                <div class="flex gap-2">
+                    <input type="text" id="manualQrCodeInput" placeholder="Contoh: 01.01.01.01.001 atau BE 1 A" class="w-full text-xs font-mono px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500">
+                    <button onclick="App.handleManualCodeLookup()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs flex-shrink-0">
+                        Cari
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- =========================================================================
          MODAL 1: DETAIL ASET & SPESIFIKASI LENGKAP
          ========================================================================= -->
     <div id="assetDetailModal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
@@ -712,8 +767,14 @@
             </div>
 
             <!-- Modal Content -->
-            <div class="p-6 space-y-6">
+            <div class="p-6 space-y-5">
                 
+                <!-- Status Sensus & Verifikasi Lapangan -->
+                <div id="detailSensusStatusBox" class="p-3 bg-slate-50 rounded-xl border border-slate-200"></div>
+
+                <!-- Foto Fisik Aset -->
+                <div id="detailPhotoContainer" class="hidden"></div>
+
                 <!-- Info Nilai & OPD -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
                     <div>
@@ -778,7 +839,7 @@
                     <div class="md:col-span-4 p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center justify-center text-center">
                         <span class="text-xs font-bold text-slate-700 mb-2">QR Code Inventaris</span>
                         <div id="detailQrCodeContainer" class="p-2 bg-white rounded-lg shadow-sm border border-slate-200"></div>
-                        <span class="text-[10px] text-slate-400 mt-2">Dapat di-scan petugas saat sensus BMD</span>
+                        <span class="text-[10px] text-slate-400 mt-2">Dapat di-scan dengan kamera HP/Scanner</span>
                     </div>
                 </div>
 
@@ -840,6 +901,21 @@
                         <div class="md:col-span-2">
                             <label class="block text-xs font-bold text-slate-700 mb-1">Nama Barang / Aset <span class="text-rose-500">*</span></label>
                             <input type="text" id="formName" name="name" required placeholder="Contoh: Gedung Kantor Dinas Bina Marga, Ambulans ICU Toyota HiAce..." class="w-full text-xs px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500">
+                        </div>
+
+                        <!-- Upload Foto Fisik Aset -->
+                        <div class="md:col-span-2 p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
+                            <label class="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-camera text-amber-500"></i> Unggah Foto Fisik Barang (Opsional)
+                            </label>
+                            <div class="flex items-center gap-4 mt-2">
+                                <input type="file" id="formImageFile" accept="image/*" class="text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer">
+                                
+                                <div id="formPhotoPreview" class="hidden flex items-center gap-2">
+                                    <img id="formPhotoImg" src="" alt="Pratinjau" class="w-12 h-12 object-cover rounded-lg border border-slate-300">
+                                    <button type="button" onclick="App.removeUploadedPhoto()" class="text-xs text-rose-600 font-bold hover:underline">Hapus Foto</button>
+                                </div>
+                            </div>
                         </div>
 
                         <div>

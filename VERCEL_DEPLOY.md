@@ -64,3 +64,4 @@ Jika Anda memiliki Node.js di komputer:
 - [`index.html`](file:///d:/Belajaragent/index.html): Halaman utama statis berstandar Vercel dengan preloaded database 34 aset Pemprov Lampung.
 - [`assets/js/db.js`](file:///d:/Belajaragent/assets/js/db.js): Database awal resmi 15 Kabupaten/Kota, OPD, dan Kategori KIB.
 - [`assets/js/store.js`](file:///d:/Belajaragent/assets/js/store.js): Engine database di browser (LocalStorage) yang memungkinkan fitur Tambah, Edit, Hapus, dan Filter tetap berjalan interaktif di Vercel.
+

@@ -32,6 +32,16 @@ const Store = {
         if (typeof INITIAL_DATABASE !== 'undefined') {
             // Deep clone data awal
             this.data = JSON.parse(JSON.stringify(INITIAL_DATABASE));
+            
+            // Tambahkan field sensus_status jika belum ada
+            this.data.assets.forEach((a, idx) => {
+                if (!a.sensus_status) {
+                    a.sensus_status = idx % 3 === 0 ? 'Terverifikasi' : 'Belum Sensus';
+                    a.sensus_date = idx % 3 === 0 ? '2026-08-14' : null;
+                    a.verifier = idx % 3 === 0 ? 'Tim Sensus BPKAD' : null;
+                }
+            });
+
             this.save();
         } else {
             console.error('INITIAL_DATABASE tidak ditemukan!');
@@ -134,9 +144,19 @@ const Store = {
         const goodVehicles = vehicles.filter(v => v.condition === 'Baik').length;
         const totalVehVal = vehicles.reduce((s, v) => s + (parseFloat(v.acquisition_value) || 0), 0);
 
+        // 9. Sensus Stats
+        const verifiedAssets = assets.filter(a => a.sensus_status === 'Terverifikasi').length;
+
         return {
             success: true,
-            summary: { total_assets, total_acquisition_value, total_book_value },
+            summary: { 
+                total_assets, 
+                total_acquisition_value, 
+                total_book_value,
+                verified_assets: verifiedAssets,
+                unverified_assets: total_assets - verifiedAssets,
+                sensus_progress: total_assets > 0 ? ((verifiedAssets / total_assets) * 100).toFixed(1) : 0
+            },
             by_category: categories,
             by_condition,
             by_status,
@@ -187,6 +207,9 @@ const Store = {
         }
         if (params.certificate_status) {
             list = list.filter(a => a.certificate_status === params.certificate_status);
+        }
+        if (params.sensus_status) {
+            list = list.filter(a => a.sensus_status === params.sensus_status);
         }
 
         // Total nilai terfilter
@@ -273,6 +296,19 @@ const Store = {
         return { success: true, data: enriched };
     },
 
+    getAssetByCodeOrRegister(query) {
+        if (!this.data) this.init();
+        const clean = query.trim().toUpperCase();
+        const asset = this.data.assets.find(a => 
+            (a.asset_code && a.asset_code.toUpperCase() === clean) ||
+            (a.register_number && a.register_number.toUpperCase() === clean) ||
+            (a.police_number && a.police_number.toUpperCase() === clean) ||
+            (clean.includes(a.asset_code))
+        );
+        if (!asset) return null;
+        return this.enrichAsset(asset);
+    },
+
     addAsset(input) {
         if (!this.data) this.init();
         const nextId = (this.data.assets.reduce((max, a) => Math.max(max, Number(a.id) || 0), 0) + 1);
@@ -320,6 +356,10 @@ const Store = {
             contract_value: input.contract_value ? parseFloat(input.contract_value) : null,
             progress_percentage: input.progress_percentage ? parseFloat(input.progress_percentage) : null,
             notes: input.notes || null,
+            image_url: input.image_url || null,
+            sensus_status: 'Terverifikasi',
+            sensus_date: new Date().toISOString().split('T')[0],
+            verifier: 'Petugas Input BMD',
             created_at: new Date().toISOString()
         };
 
@@ -370,11 +410,25 @@ const Store = {
             contract_value: input.contract_value ? parseFloat(input.contract_value) : old.contract_value,
             progress_percentage: input.progress_percentage ? parseFloat(input.progress_percentage) : old.progress_percentage,
             notes: input.notes !== undefined ? input.notes : old.notes,
+            image_url: input.image_url !== undefined ? input.image_url : old.image_url,
             updated_at: new Date().toISOString()
         };
 
         this.save();
         return { success: true, message: 'Data aset berhasil diperbarui' };
+    },
+
+    verifyAsset(id, verifierName = 'Petugas Verifikasi BMD') {
+        if (!this.data) this.init();
+        const index = this.data.assets.findIndex(a => Number(a.id) === Number(id));
+        if (index === -1) return { success: false, message: 'Aset tidak ditemukan' };
+
+        this.data.assets[index].sensus_status = 'Terverifikasi';
+        this.data.assets[index].sensus_date = new Date().toISOString().split('T')[0];
+        this.data.assets[index].verifier = verifierName;
+
+        this.save();
+        return { success: true, message: 'Aset berhasil diverifikasi dalam Sensus Fisik BMD!' };
     },
 
     deleteAsset(id) {

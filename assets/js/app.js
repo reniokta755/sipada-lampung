@@ -20,11 +20,14 @@ const App = {
             regency: '',
             condition: '',
             status: '',
-            certificate_status: ''
+            certificate_status: '',
+            sensus_status: ''
         },
         selectedAsset: null,
         mapPickerMarker: null,
-        pickerMap: null
+        pickerMap: null,
+        html5QrCode: null,
+        tempUploadedImage: null
     },
 
     // Format Rupiah Standar Akuntansi Pemerintah
@@ -58,7 +61,6 @@ const App = {
     },
 
     async init() {
-        // Inisialisasi Database Client-Side (Vercel-native)
         if (window.Store) {
             Store.init();
         }
@@ -68,7 +70,7 @@ const App = {
         await this.loadDashboardStats();
         await this.loadAssetsTable();
         
-        // Cek hash URL untuk deep-linking tab
+        // Deep-link tab
         const hash = window.location.hash.replace('#', '');
         if (hash && ['dashboard', 'map', 'inventory', 'land', 'vehicles', 'utilization', 'reports'].includes(hash)) {
             this.switchTab(hash);
@@ -100,7 +102,7 @@ const App = {
         }
 
         // Filter Selectors
-        ['filterCategory', 'filterOpd', 'filterRegency', 'filterCondition', 'filterStatus'].forEach(id => {
+        ['filterCategory', 'filterOpd', 'filterRegency', 'filterCondition', 'filterStatus', 'filterSensus'].forEach(id => {
             const el = document.getElementById(id);
             if (el) {
                 el.addEventListener('change', () => {
@@ -109,6 +111,9 @@ const App = {
                     this.state.filters.regency = document.getElementById('filterRegency').value;
                     this.state.filters.condition = document.getElementById('filterCondition').value;
                     this.state.filters.status = document.getElementById('filterStatus').value;
+                    if (document.getElementById('filterSensus')) {
+                        this.state.filters.sensus_status = document.getElementById('filterSensus').value;
+                    }
                     this.state.currentPage = 1;
                     this.loadAssetsTable();
                     if (this.state.activeTab === 'map' && window.GISMap) {
@@ -152,6 +157,14 @@ const App = {
             });
         }
 
+        // Form Photo Upload Listener
+        const fileInput = document.getElementById('formImageFile');
+        if (fileInput) {
+            fileInput.addEventListener('change', (e) => {
+                this.handlePhotoUpload(e);
+            });
+        }
+
         // Form Kategori Switcher (Show/Hide tab form spesifik)
         const catSelect = document.getElementById('formCategory');
         if (catSelect) {
@@ -188,11 +201,12 @@ const App = {
             regency: '',
             condition: '',
             status: '',
-            certificate_status: ''
+            certificate_status: '',
+            sensus_status: ''
         };
         const searchInput = document.getElementById('globalSearchInput');
         if (searchInput) searchInput.value = '';
-        ['filterCategory', 'filterOpd', 'filterRegency', 'filterCondition', 'filterStatus'].forEach(id => {
+        ['filterCategory', 'filterOpd', 'filterRegency', 'filterCondition', 'filterStatus', 'filterSensus'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.value = '';
         });
@@ -467,7 +481,8 @@ const App = {
                 regency: this.state.filters.regency,
                 condition: this.state.filters.condition,
                 status: this.state.filters.status,
-                certificate_status: this.state.filters.certificate_status
+                certificate_status: this.state.filters.certificate_status,
+                sensus_status: this.state.filters.sensus_status
             };
 
             if (window.Store) {
@@ -541,6 +556,11 @@ const App = {
                 statusBadge = '<span class="text-xs px-2 py-0.5 rounded bg-rose-100 text-rose-700 font-medium">Usul Hapus</span>';
             }
 
+            // Pill Status Sensus
+            let sensusBadge = item.sensus_status === 'Terverifikasi' 
+                ? '<span class="text-[10px] text-emerald-600 font-bold flex items-center gap-1" title="Telah Disensus Fisik"><i class="fa-solid fa-check-circle"></i> Sensus OK</span>'
+                : '<span class="text-[10px] text-slate-400 font-medium flex items-center gap-1" title="Menunggu Verifikasi Fisik"><i class="fa-regular fa-clock"></i> Belum Sensus</span>';
+
             // Atribut Spesifik Aset
             let extraSpec = '';
             if (item.category_id === 'kib-a' && item.area_sqm) {
@@ -552,6 +572,11 @@ const App = {
             } else if (item.category_id === 'kib-f' && item.progress_percentage !== null) {
                 extraSpec = `<span class="text-xs font-bold text-emerald-600"><i class="fa-solid fa-bars-progress"></i> Progres ${item.progress_percentage}%</span>`;
             }
+
+            // Foto Thumbnail
+            let photoThumb = item.image_url 
+                ? `<div class="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 border border-slate-200"><img src="${item.image_url}" class="w-full h-full object-cover"></div>`
+                : `<div class="w-10 h-10 rounded-lg bg-slate-100 flex-shrink-0 border border-slate-200 flex items-center justify-center text-slate-400"><i class="fa-solid fa-image text-xs"></i></div>`;
 
             html += `
                 <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100">
@@ -567,12 +592,17 @@ const App = {
                         <div class="text-[11px] text-slate-400">Reg: ${item.register_number}</div>
                     </td>
                     <td class="px-4 py-3.5">
-                        <div class="font-semibold text-slate-900 line-clamp-1 hover:text-amber-600 cursor-pointer" onclick="App.viewAssetDetail(${item.id})">
-                            ${item.name}
-                        </div>
-                        <div class="flex items-center gap-2 mt-1">
-                            <span class="text-xs text-slate-500"><i class="fa-solid fa-location-dot text-slate-400"></i> ${item.regency_name}</span>
-                            ${extraSpec}
+                        <div class="flex items-center gap-3">
+                            ${photoThumb}
+                            <div class="min-w-0">
+                                <div class="font-semibold text-slate-900 line-clamp-1 hover:text-amber-600 cursor-pointer" onclick="App.viewAssetDetail(${item.id})">
+                                    ${item.name}
+                                </div>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="text-xs text-slate-500"><i class="fa-solid fa-location-dot text-slate-400"></i> ${item.regency_name}</span>
+                                    ${extraSpec}
+                                </div>
+                            </div>
                         </div>
                     </td>
                     <td class="px-4 py-3.5">
@@ -586,7 +616,10 @@ const App = {
                     <td class="px-4 py-3.5">
                         <div class="flex flex-col gap-1 items-start">
                             ${condBadge}
-                            ${statusBadge}
+                            <div class="flex items-center gap-1.5">
+                                ${statusBadge}
+                                ${sensusBadge}
+                            </div>
                         </div>
                     </td>
                     <td class="px-4 py-3.5 text-center">
@@ -695,6 +728,43 @@ const App = {
             document.getElementById('detailAddress').textContent = a.address || '-';
             document.getElementById('detailNotes').textContent = a.notes || 'Tidak ada catatan tambahan.';
 
+            // Status Sensus Fisik
+            const sensusBox = document.getElementById('detailSensusStatusBox');
+            if (sensusBox) {
+                if (a.sensus_status === 'Terverifikasi') {
+                    sensusBox.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-emerald-800 font-bold flex items-center gap-1.5">
+                                <i class="fa-solid fa-circle-check text-emerald-600"></i> Terverifikasi Sensus Fisik (${a.sensus_date || '2026'})
+                            </span>
+                            <span class="text-[11px] text-slate-500">Petugas: ${a.verifier || 'Tim BPKAD'}</span>
+                        </div>
+                    `;
+                } else {
+                    sensusBox.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-amber-800 font-semibold flex items-center gap-1.5">
+                                <i class="fa-solid fa-clock text-amber-600"></i> Belum Dilakukan Verifikasi Lapangan Sensus BMD
+                            </span>
+                            <button onclick="App.verifyAssetNow(${a.id})" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm">
+                                <i class="fa-solid fa-check"></i> Verifikasi Sekarang
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+
+            // Preview Foto Fisik Jika Ada
+            const photoContainer = document.getElementById('detailPhotoContainer');
+            if (photoContainer) {
+                if (a.image_url) {
+                    photoContainer.innerHTML = `<img src="${a.image_url}" alt="${a.name}" class="w-full h-48 object-cover rounded-2xl border border-slate-200">`;
+                    photoContainer.classList.remove('hidden');
+                } else {
+                    photoContainer.classList.add('hidden');
+                }
+            }
+
             // Spesifikasi Kategori Khusus
             const specContainer = document.getElementById('detailCategorySpecs');
             let specHtml = '';
@@ -800,7 +870,7 @@ const App = {
             specContainer.innerHTML = specHtml;
 
             // Generate QR Code di Modal
-            this.renderQRCodeToElement('detailQrCodeContainer', `https://dashboard_aset.lampungprov.go.id/asset/${a.asset_code}`);
+            this.renderQRCodeToElement('detailQrCodeContainer', `BMD-PROV-LAMPUNG:${a.asset_code}:${a.register_number}`);
 
             // Riwayat Pemeliharaan
             this.renderDetailMaintenanceLogs(a.maintenance_logs || []);
@@ -826,6 +896,17 @@ const App = {
 
     closeDetailModal() {
         document.getElementById('assetDetailModal').classList.add('hidden');
+    },
+
+    verifyAssetNow(assetId) {
+        if (!confirm('Verifikasi bahwa kondisi fisik dan keberadaan barang milik daerah ini telah diperiksa di lapangan?')) return;
+        if (window.Store) {
+            Store.verifyAsset(assetId, 'Tim Verifikasi BPKAD');
+            alert('Aset berhasil diverifikasi!');
+            this.viewAssetDetail(assetId);
+            this.loadAssetsTable();
+            this.loadDashboardStats();
+        }
     },
 
     renderDetailMaintenanceLogs(logs) {
@@ -908,6 +989,109 @@ const App = {
         window.print();
     },
 
+    // =========================================================================
+    // FITUR KAMERA SCANNER QR CODE FISIK ASET
+    // =========================================================================
+    openQRScannerModal() {
+        const modal = document.getElementById('qrScannerModal');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+
+        // Reset status text
+        document.getElementById('qrScanStatus').innerHTML = '<span class="text-slate-500">Arahkan kamera ke stiker QR Code aset atau masukkan kode barang manual.</span>';
+
+        // Inisialisasi scanner jika library tersedia
+        if (typeof Html5Qrcode !== 'undefined') {
+            try {
+                if (this.state.html5QrCode) {
+                    this.state.html5QrCode.stop().catch(() => {});
+                }
+
+                this.state.html5QrCode = new Html5Qrcode("qrReaderCamera");
+                this.state.html5QrCode.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    (decodedText) => {
+                        this.handleScannedCode(decodedText);
+                    },
+                    (errorMessage) => {
+                        // ignore frame errors
+                    }
+                ).catch(err => {
+                    console.warn("Kamera tidak dapat diakses atau tidak ada izin:", err);
+                    document.getElementById('qrScanStatus').innerHTML = `<span class="text-amber-600 font-semibold"><i class="fa-solid fa-camera"></i> Kamera tidak aktif. Gunakan pencarian kode manual di bawah.</span>`;
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+    },
+
+    closeQRScannerModal() {
+        if (this.state.html5QrCode) {
+            this.state.html5QrCode.stop().then(() => {
+                this.state.html5QrCode.clear();
+            }).catch(() => {});
+        }
+        document.getElementById('qrScannerModal').classList.add('hidden');
+    },
+
+    handleScannedCode(rawCode) {
+        console.log("QR Terdeteksi:", rawCode);
+        document.getElementById('qrScanStatus').innerHTML = `<span class="text-emerald-600 font-bold"><i class="fa-solid fa-spinner fa-spin"></i> Membaca kode: ${rawCode}...</span>`;
+
+        let matchAsset = null;
+        if (window.Store) {
+            matchAsset = Store.getAssetByCodeOrRegister(rawCode);
+        }
+
+        if (matchAsset) {
+            this.closeQRScannerModal();
+            this.viewAssetDetail(matchAsset.id);
+        } else {
+            document.getElementById('qrScanStatus').innerHTML = `<span class="text-rose-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Aset dengan kode "${rawCode}" tidak ditemukan di database.</span>`;
+        }
+    },
+
+    handleManualCodeLookup() {
+        const input = document.getElementById('manualQrCodeInput');
+        if (!input || !input.value.trim()) return;
+        this.handleScannedCode(input.value.trim());
+    },
+
+    // =========================================================================
+    // UPLOAD FOTO FISIK ASET
+    // =========================================================================
+    handlePhotoUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            alert('File harus berupa gambar (JPG, PNG, WEBP)');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            this.state.tempUploadedImage = e.target.result;
+            const preview = document.getElementById('formPhotoPreview');
+            const img = document.getElementById('formPhotoImg');
+            if (preview && img) {
+                img.src = e.target.result;
+                preview.classList.remove('hidden');
+            }
+        };
+        reader.readAsDataURL(file);
+    },
+
+    removeUploadedPhoto() {
+        this.state.tempUploadedImage = null;
+        const fileInput = document.getElementById('formImageFile');
+        if (fileInput) fileInput.value = '';
+        const preview = document.getElementById('formPhotoPreview');
+        if (preview) preview.classList.add('hidden');
+    },
+
     // Open Tambah / Edit Modal
     openAssetModal(assetId = null) {
         const modal = document.getElementById('assetFormModal');
@@ -915,6 +1099,7 @@ const App = {
         const form = document.getElementById('assetForm');
         form.reset();
 
+        this.removeUploadedPhoto();
         document.getElementById('formAssetId').value = assetId || '';
 
         // Reset tabs to general
@@ -962,6 +1147,17 @@ const App = {
             document.getElementById('formBookValue').value = a.book_value;
             document.getElementById('formCondition').value = a.condition;
             document.getElementById('formStatus').value = a.status;
+
+            // Foto jika ada
+            if (a.image_url) {
+                this.state.tempUploadedImage = a.image_url;
+                const preview = document.getElementById('formPhotoPreview');
+                const img = document.getElementById('formPhotoImg');
+                if (preview && img) {
+                    img.src = a.image_url;
+                    preview.classList.remove('hidden');
+                }
+            }
 
             // Alamat & Lokasi
             document.getElementById('formRegency').value = a.regency_name;
@@ -1027,6 +1223,11 @@ const App = {
         formData.forEach((val, key) => {
             data[key] = val;
         });
+
+        // Simpan foto jika ada
+        if (this.state.tempUploadedImage) {
+            data.image_url = this.state.tempUploadedImage;
+        }
 
         const assetId = data.id;
         const isEdit = Boolean(assetId);
@@ -1428,6 +1629,25 @@ const App = {
         window.print();
     },
 
+    // Unduh Dokumen Berita Acara Langsung ke PDF
+    downloadPDFReport() {
+        const element = document.getElementById('printableArea');
+        if (!element) return;
+
+        if (typeof html2pdf !== 'undefined') {
+            const opt = {
+                margin: 10,
+                filename: `Berita_Acara_Rekapitulasi_BMD_Lampung_${new Date().toISOString().slice(0, 10)}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        } else {
+            window.print();
+        }
+    },
+
     // Export Data ke Excel (CSV)
     exportToExcel() {
         let exportAssets = this.state.assets;
@@ -1440,7 +1660,7 @@ const App = {
             return;
         }
 
-        const headers = ["No", "Kode Barang", "No Register", "Nama Aset", "Kategori KIB", "OPD Penanggung Jawab", "Kabupaten/Kota", "Tahun Perolehan", "Nilai Perolehan (Rp)", "Nilai Buku (Rp)", "Kondisi", "Status Pemanfaatan", "Keterangan"];
+        const headers = ["No", "Kode Barang", "No Register", "Nama Aset", "Kategori KIB", "OPD Penanggung Jawab", "Kabupaten/Kota", "Tahun Perolehan", "Nilai Perolehan (Rp)", "Nilai Buku (Rp)", "Kondisi", "Status Pemanfaatan", "Status Sensus", "Keterangan"];
         const rows = exportAssets.map((a, idx) => [
             idx + 1,
             `"${a.asset_code}"`,
@@ -1454,6 +1674,7 @@ const App = {
             a.book_value,
             `"${a.condition}"`,
             `"${a.status}"`,
+            `"${a.sensus_status || 'Belum Sensus'}"`,
             `"${(a.notes || '').replace(/"/g, '""')}"`
         ]);
 
